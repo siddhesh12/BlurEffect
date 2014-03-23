@@ -1,0 +1,40 @@
+- (void) captureBlur
+{
+    AppDelegate *appdelegate = (AppDelegate*)[[UIApplication sharedApplication] delegate];
+    
+    //Get a UIImage from the UIView
+    UIGraphicsBeginImageContext(self.view.bounds.size);
+    //[self.view drawViewHierarchyInRect:self.view.bounds afterScreenUpdates:YES];
+
+    [appdelegate.window.layer renderInContext:UIGraphicsGetCurrentContext()]; //used appdelegate.window.layer to include navigationbar in snapshot
+    
+
+    UIImage *viewImage = UIGraphicsGetImageFromCurrentImageContext();
+    
+    //Blur the UIImage
+    CIImage *imageToBlur = [CIImage imageWithCGImage:viewImage.CGImage];
+    CIFilter *gaussianBlurFilter = [CIFilter filterWithName: @"CIGaussianBlur"];
+    [gaussianBlurFilter setValue:imageToBlur forKey: @"inputImage"];
+    [gaussianBlurFilter setValue:[NSNumber numberWithFloat:5] forKey: @"inputRadius"]; //change number to increase/decrease blur
+    CIImage *resultImage = [gaussianBlurFilter valueForKey: @"outputImage"];
+    
+    CGRect rect             = [resultImage extent];
+    rect.origin.x          += (rect.size.width  - viewImage.size.width ) / 2;
+    rect.origin.y          += (rect.size.height - viewImage.size.height) / 2;
+    rect.size               = viewImage.size;
+    CIContext *context      = [CIContext contextWithOptions:nil];
+    CGImageRef cgimg        = [context createCGImage:resultImage fromRect:rect];
+    
+    UIImage   *blurredImage = [UIImage imageWithCGImage:cgimg];
+    CGImageRelease(cgimg);
+    //create UIImage from filtered image
+//    UIImage *blurrredImage = [[UIImage alloc] initWithCIImage:resultImage];
+    
+    //Place the UIImage in a UIImageView
+    newView = [[UIImageView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    newView.image = blurredImage;
+    
+    UIGraphicsEndImageContext();
+    
+
+}
